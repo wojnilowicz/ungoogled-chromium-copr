@@ -1,0 +1,464 @@
+diff --git a/chromium-browser.desktop b/chromium-browser.desktop
+index e88b5af..27e4a6b 100644
+--- a/chromium-browser.desktop
++++ b/chromium-browser.desktop
+@@ -1,27 +1,6 @@
+ [Desktop Entry]
+ Version=1.0
+-Name=Chromium Web Browser
+-Name[ast]=Restolador web Chromium
+-Name[ca]=Navegador web Chromium
+-Name[de]=Chromium-Webbrowser
+-Name[es]=Navegador web Chromium
+-Name[fr]=Navigateur Web Chromium
+-Name[gl]=Navegador web Chromium
+-Name[he]=דפדפן האינטרנט Chromium
+-Name[hr]=Chromium web preglednik
+-Name[hu]=Chromium webböngésző
+-Name[id]=Peramban Web Chromium
+-Name[it]=Browser web Chromium
+-Name[ja]=Chromium ウェブ・ブラウザ
+-Name[ko]=Chromium 웹 브라우저
+-Name[pt_BR]=Chromium Navegador da Internet
+-Name[ru]=Веб-браузер Chromium
+-Name[sl]=Chromium spletni brskalnik
+-Name[sv]=Webbläsaren Chromium
+-Name[ug]=Chromium توركۆرگۈ
+-Name[zh_CN]=Chromium 网页浏览器
+-Name[zh_HK]=Chromium 網頁瀏覽器
+-Name[zh_TW]=Chromium 網頁瀏覽器
++Name=Ungoogled Chromium
+ Comment=Access the Internet
+ Comment[ar]=الدخول إلى الإنترنت
+ Comment[ast]=Accesu a Internet
+@@ -128,11 +107,11 @@ GenericName[vi]=Bộ duyệt Web
+ GenericName[zh_CN]=网页浏览器
+ GenericName[zh_HK]=網頁瀏覽器
+ GenericName[zh_TW]=網頁瀏覽器
+-Exec=/usr/bin/chromium-browser %U
++Exec=/usr/bin/ungoogled-chromium %U
+ Terminal=false
+ X-MultipleArgs=false
+ Type=Application
+-Icon=chromium-browser
++Icon=ungoogled-chromium
+ Categories=Network;WebBrowser;
+ MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;
+ StartupWMClass=Chromium-browser
+@@ -245,7 +224,7 @@ Name[wo]=Palanteer bu bees
+ Name[xh]=Ifestile entsha
+ Name[zh_CN]=新建窗口
+ Name[zh_TW]=開新視窗
+-Exec=chromium-browser %U
++Exec=ungoogled-chromium %U
+ 
+ [Desktop Action new-private-window]
+ Name=Open a New Private Window
+@@ -353,4 +332,4 @@ Name[wo]=Panlanteeru biir bu bees
+ Name[xh]=Ifestile yangasese entsha
+ Name[zh_CN]=新建隐私浏览窗口
+ Name[zh_TW]=新增隱私視窗
+-Exec=chromium-browser --incognito %U
++Exec=ungoogled-chromium --incognito %U
+diff --git a/chromium-browser.sh b/chromium-browser.sh
+index 639e868..1398052 100755
+--- a/chromium-browser.sh
++++ b/chromium-browser.sh
+@@ -32,7 +32,7 @@ export GNOME_DISABLE_CRASH_DIALOG=SET_BY_GOOGLE_CHROME
+ 
+ # Allow users to override command-line options and prefer user defined
+ # CHROMIUM_USER_FLAGS from env over system wide CHROMIUM_FLAGS
+-[[ -f /etc/chromium/chromium.conf ]] && . /etc/chromium/chromium.conf
++[[ -f /etc/ungoogled-chromium/ungoogled-chromium.conf ]] && . /etc/ungoogled-chromium/ungoogled-chromium.conf
+ CHROMIUM_FLAGS=${CHROMIUM_USER_FLAGS:-$CHROMIUM_FLAGS}
+ 
+ CHROMIUM_DISTRO_FLAGS=" --enable-plugins \
+@@ -40,6 +40,7 @@ CHROMIUM_DISTRO_FLAGS=" --enable-plugins \
+                         --enable-user-scripts \
+                         --enable-printing \
+                         --enable-sync \
++                        --disable-background-networking \
+                         --auto-ssl-client-auth @@EXTRA_FLAGS@@"
+ 
+ # Sanitize std{in,out,err} because they'll be shared with untrusted child
+diff --git a/chromium-browser.xml b/chromium-browser.xml
+index 3ee1e43..9483165 100644
+--- a/chromium-browser.xml
++++ b/chromium-browser.xml
+@@ -3,10 +3,10 @@
+ <default-apps>
+   <web-browsers>
+     <web-browser>
+-      <name>Chromium</name>
+-      <executable>chromium-browser</executable>
+-      <command>/usr/bin/chromium-browser %s</command>
+-      <icon-name>chromium-browser</icon-name>
++      <name>Ungoogled Chromium</name>
++      <executable>ungoogled-chromium</executable>
++      <command>/usr/bin/ungoogled-chromium %s</command>
++      <icon-name>ungoogled-chromium</icon-name>
+       <run-in-terminal>false</run-in-terminal>
+       <netscape-remote>true</netscape-remote>
+       <tab-command>/usr/bin/chromium-browser %s</tab-command>
+diff --git a/chromium.spec b/chromium.spec
+index 392ac11..4accbcc 100644
+--- a/chromium.spec
++++ b/chromium.spec
+@@ -34,13 +34,13 @@
+ 	ninja -j %{numjobs} -C '%1' '%2'
+ 
+ # enable|disable chromedriver
+-%global build_chromedriver 1
++%global build_chromedriver 0
+ %if 0%{?flatpak}
+ %global build_chromedriver 0
+ %endif
+ 
+ # enable|disable headless client build
+-%global build_headless 1
++%global build_headless 0
+ %if 0%{?flatpak}
+ %global build_headless 0
+ %endif
+@@ -124,8 +124,8 @@
+ %undefine _debugsource_packages
+ %endif
+ 
+-%global chromium_menu_name Chromium
+-%global chromium_path %{_libdir}/chromium-browser
++%global chromium_menu_name Ungoogled Chromium
++%global chromium_path %{_libdir}/ungoogled-chromium
+ %global crd_path %{_libdir}/chrome-remote-desktop
+ 
+ # We don't want any libs in these directories to generate Provides
+@@ -259,11 +259,11 @@
+ %global chromoting_client_id %nil
+ %endif
+ 
+-Name:	chromium
++Name:	ungoogled-chromium
+ Version: 144.0.7559.132
+ Release: 1%{?dist}
+-Summary: A WebKit (Blink) powered web browser that Google doesn't want you to use
+-Url: http://www.chromium.org/Home
++Summary: A lightweight approach to removing Google web service dependency
++Url: https://github.com/Eloston/ungoogled-chromium
+ License: BSD-3-Clause AND LGPL-2.1-or-later AND Apache-2.0 AND IJG AND MIT AND GPL-2.0-or-later AND ISC AND OpenSSL AND (MPL-1.1 OR GPL-2.0-only OR LGPL-2.0-only)
+ 
+ # Use /etc/chromium for initial_prefs
+@@ -478,10 +478,11 @@ Patch501: flatpak-Adjust-paths-for-the-sandbox.patch
+ Patch502: flatpak-Expose-Widevine-into-the-sandbox.patch
+ 
+ # nodejs patches
+-%if ! %{system_nodejs}
++# ungoogled-chromium: doesn't build on epel-9 withouth this
++#%%if ! %%{system_nodejs}
+ Patch510: 0001-Remove-unused-OpenSSL-config.patch
+ Patch511: 0002-Fix-Missing-OPENSSL_NO_ENGINE-Guard.patch
+-%endif
++#%%endif
+ 
+ # upstream patches
+ 
+@@ -492,9 +493,9 @@ Patch511: 0002-Fix-Missing-OPENSSL_NO_ENGINE-Guard.patch
+ # https://commondatastorage.googleapis.com/chromium-browser-official/chromium-%%{version}.tar.xz
+ Source0: chromium-%{version}-clean.tar.xz
+ Source1: README.fedora
+-Source2: chromium.conf
+-Source3: chromium-browser.sh
+-Source4: chromium-browser.desktop
++Source2: ungoogled-chromium.conf
++Source3: ungoogled-chromium.sh
++Source4: ungoogled-chromium.desktop
+ # Also, only used if you want to reproduce the clean tarball.
+ Source5: clean_ffmpeg.sh
+ Source6: chromium-latest.py
+@@ -503,20 +504,25 @@ Source7: get_free_ffmpeg_source_files.py
+ # Usage: get_linux_tests_name.py chromium-%%{version} --spec
+ Source8: get_linux_tests_names.py
+ # GNOME stuff
+-Source9: chromium-browser.xml
+-Source10: chromium-browser.appdata.xml
++Source9: ungoogled-chromium.xml
++Source10: ungoogled-chromium.appdata.xml
+ Source11: master_preferences
+ 
+-%if ! %{system_nodejs}
+ # nodejs bundles openssl, but we use the system version in el9
+ # because openssl contains prohibited code, we remove openssl completely from
+ # the tarball, using the script in Source13
+ # http://nodejs.org/dist/v${version}/node-${nodejs_version}.tar.gz
+ Source12: node-%{nodejs_version}-stripped.tar.gz
+ Source13: nodejs-sources.sh
++# ungoogled-chromium: fails to build on epel-9 without moving this if
++%if ! %{system_nodejs}
+ BuildRequires: openssl-devel
+ %endif
+ 
++# ungoogled-chromium source
++%global ungoogled_chromium_revision %{version}-1
++Source300: https://github.com/Eloston/ungoogled-chromium/archive/%{ungoogled_chromium_revision}/ungoogled-chromium-%{ungoogled_chromium_revision}.tar.gz
++
+ BuildRequires: clang
+ BuildRequires: clang-tools-extra
+ BuildRequires: llvm
+@@ -850,7 +856,7 @@ Requires: nss-mdns%{_isa}
+ Requires: u2f-hidraw-policy
+ %endif
+ 
+-Requires: chromium-common%{_isa} = %{version}-%{release}
++Requires: ungoogled-chromium-common%{_isa} = %{version}-%{release}
+ 
+ # el9: x86_64, aarch64
+ # el10, fedora: x86_64, aarch64, ppc64le
+@@ -1009,21 +1015,24 @@ udev.
+ 
+ %package qt5-ui
+ Summary: Qt5 UI built from Chromium
+-Requires: chromium%{_isa} = %{version}-%{release}
++Requires: ungoogled-chromium%{_isa} = %{version}-%{release}
+ 
+ %description qt5-ui
+ Qt5 UI for chromium.
+ 
+ %package qt6-ui
+ Summary: Qt6 UI built from Chromium
+-Requires: chromium%{_isa} = %{version}-%{release}
++Requires: ungoogled-chromium%{_isa} = %{version}-%{release}
+ 
+ %description qt6-ui
+ Qt6 UI for chromium.
+ 
+ %prep
++%setup -q -T -n ungoogled-chromium-%{ungoogled_chromium_revision} -b 300
+ %setup -q -n chromium-%{version}
+ 
++%global ungoogled_chromium_root %{_builddir}/ungoogled-chromium-%{ungoogled_chromium_revision}
++
+ ### Chromium Fedora Patches ###
+ %patch -P1 -p1 -b .etc
+ %patch -P8 -p1 -b .widevine-other-locations
+@@ -1120,7 +1129,8 @@ Qt6 UI for chromium.
+ %patch -P353 -p1 -b .duplicate-case-value
+ %endif
+ 
+-%patch -P355 -p1 -b .hardware_destructive_interference_size
++# Comment out to avoid unclean patching with equal Ungoogled Chromium patch
++#%%patch -P355 -p1 -b .hardware_destructive_interference_size
+ 
+ %patch -P356 -p1 -b .disable_use_libcxx_modules
+ 
+@@ -1177,6 +1187,9 @@ Qt6 UI for chromium.
+ 
+ # Upstream patches
+ 
++# ungoogled-chromium: binary pruning.
++python3 -B %{ungoogled_chromium_root}/utils/prune_binaries.py . %{ungoogled_chromium_root}/pruning.list || true
++
+ # Change shebang in all relevant files in this directory and all subdirectories
+ # See `man find` for how the `-exec command {} +` syntax works
+ find -type f \( -iname "*.py" \) -exec sed -i '1s=^#! */usr/bin/\(python\|env python\)[23]\?=#!%{chromium_pybin}=' {} +
+@@ -1211,7 +1224,7 @@ cp -a $(pkg-config --variable=includedir libusb-1.0)/libusb-1.0/libusb.h third_p
+ %endif
+ 
+ # Hard code extra version
+-sed -i 's/getenv("CHROME_VERSION_EXTRA")/"Fedora Project"/' chrome/common/channel_info_posix.cc
++sed -i 's/getenv("CHROME_VERSION_EXTRA")/"Ungoogled Chromium"/' chrome/common/channel_info_posix.cc
+ 
+ # Fix hardcoded path in remoting code
+ sed -i 's|/opt/google/chrome-remote-desktop|%{crd_path}|g' remoting/host/setup/daemon_controller_delegate_linux.cc
+@@ -1367,7 +1380,7 @@ CHROMIUM_BROWSER_GN_DEFINES=""
+ %if ! %{bundleffmpegfree}
+ CHROMIUM_BROWSER_GN_DEFINES+=' ffmpeg_branding="Chrome" proprietary_codecs=true is_component_ffmpeg=true enable_ffmpeg_video_decoders=true media_use_ffmpeg=true'
+ %else
+-CHROMIUM_BROWSER_GN_DEFINES+=' ffmpeg_branding="Chromium" proprietary_codecs=false is_component_ffmpeg=false enable_ffmpeg_video_decoders=false media_use_ffmpeg=true'
++CHROMIUM_BROWSER_GN_DEFINES+=' ffmpeg_branding="Ungoogled Chromium" proprietary_codecs=false is_component_ffmpeg=false enable_ffmpeg_video_decoders=false media_use_ffmpeg=true'
+ %endif
+ # link against noopenh264 library
+ %if 0%{?noopenh264}
+@@ -1436,6 +1449,10 @@ CHROMIUM_BROWSER_GN_DEFINES+=' use_system_libtiff=true'
+  
+ CHROMIUM_BROWSER_GN_DEFINES+=' use_system_libffi=true'
+ 
++#ungoogled-chromium: defines
++CHROMIUM_BROWSER_GN_DEFINES+=' '
++CHROMIUM_BROWSER_GN_DEFINES+=$(tr '\n' ' ' < %{ungoogled_chromium_root}/flags.gn)
++
+ export CHROMIUM_BROWSER_GN_DEFINES
+ 
+ # headless gn defines
+@@ -1555,6 +1572,16 @@ if python3 -c 'import google ; print google.__path__' 2> /dev/null ; then \
+     exit 1 ; \
+ fi
+ 
++# ungoogled-chromium: patches
++python3 -B %{ungoogled_chromium_root}/utils/patches.py apply .  %{ungoogled_chromium_root}/patches
++
++# ungoogled-chromium: domain substitution
++rm -f %{_builddir}/dsc.tar.gz
++python3 -B %{ungoogled_chromium_root}/utils/domain_substitution.py apply . \
++  -r %{ungoogled_chromium_root}/domain_regex.list \
++  -f %{ungoogled_chromium_root}/domain_substitution.list \
++  -c %{_builddir}/dsc.tar.gz
++
+ %if %{bootstrap}
+ tools/gn/bootstrap/bootstrap.py --gn-gen-args="$CHROMIUM_CORE_GN_DEFINES $CHROMIUM_BROWSER_GN_DEFINES"
+ %else
+@@ -1596,7 +1623,7 @@ export BUILD_TARGET=`cat /etc/redhat-release`
+ sed -i "s|@@BUILD_TARGET@@|$BUILD_TARGET|g" %{buildroot}%{chromium_path}/chromium-browser.sh
+ sed -i "s|@@EXTRA_FLAGS@@||g" %{buildroot}%{chromium_path}/chromium-browser.sh
+ 
+-ln -s ../..%{chromium_path}/chromium-browser.sh %{buildroot}%{_bindir}/chromium-browser
++ln -s ../..%{chromium_path}/chromium-browser.sh %{buildroot}%{_bindir}/ungoogled-chromium
+ mkdir -p %{buildroot}%{_mandir}/man1/
+ 
+ pushd %{chromebuilddir}
+@@ -1613,9 +1640,9 @@ pushd %{chromebuilddir}
+ 	cp -a chrome %{buildroot}%{chromium_path}/chromium-browser
+ 	cp -a chrome_sandbox %{buildroot}%{chromium_path}/chrome-sandbox
+ 	cp -a chrome_crashpad_handler %{buildroot}%{chromium_path}/chrome_crashpad_handler
+-	cp -a ../../chrome/app/resources/manpage.1.in %{buildroot}%{_mandir}/man1/chromium-browser.1
+-	sed -i "s|@@PACKAGE@@|chromium-browser|g" %{buildroot}%{_mandir}/man1/chromium-browser.1
+-	sed -i "s|@@MENUNAME@@|%{chromium_menu_name}|g" %{buildroot}%{_mandir}/man1/chromium-browser.1
++	cp -a ../../chrome/app/resources/manpage.1.in %{buildroot}%{_mandir}/man1/ungoogled-chromium.1
++	sed -i "s|@@PACKAGE@@|chromium-browser|g" %{buildroot}%{_mandir}/man1/ungoogled-chromium.1
++	sed -i "s|@@MENUNAME@@|%{chromium_menu_name}|g" %{buildroot}%{_mandir}/man1/ungoogled-chromium.1
+ 
+ 	# V8 initial snapshots
+ 	# https://code.google.com/p/chromium/issues/detail?id=421063
+@@ -1649,26 +1676,26 @@ popd
+ # need to strip binaries explicitly when debug is disable
+ %if ! %{enable_debug}
+ pushd %{buildroot}%{chromium_path}/
+-for f in *.so *.so.1 chrome_crashpad_handler chrome-sandbox chromium-browser headless_shell chromedriver ; do
++for f in *.so *.so.1 chrome_crashpad_handler chrome-sandbox ungoogled-chromium headless_shell chromedriver ; do
+    [ -f $f ] && strip $f
+ done
+ popd
+ %endif
+ 
+ # Add directories for policy management
+-mkdir -p %{buildroot}%{_sysconfdir}/chromium/policies/managed
+-mkdir -p %{buildroot}%{_sysconfdir}/chromium/policies/recommended
++mkdir -p %{buildroot}%{_sysconfdir}/ungoogled-chromium/policies/managed
++mkdir -p %{buildroot}%{_sysconfdir}/ungoogled-chromium/policies/recommended
+ 
+ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/256x256/apps
+-cp -a chrome/app/theme/chromium/product_logo_256.png %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/chromium-browser.png
++cp -a chrome/app/theme/chromium/product_logo_256.png %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/ungoogled-chromium.png
+ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/128x128/apps
+-cp -a chrome/app/theme/chromium/product_logo_128.png %{buildroot}%{_datadir}/icons/hicolor/128x128/apps/chromium-browser.png
++cp -a chrome/app/theme/chromium/product_logo_128.png %{buildroot}%{_datadir}/icons/hicolor/128x128/apps/ungoogled-chromium.png
+ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/64x64/apps
+-cp -a chrome/app/theme/chromium/product_logo_64.png %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/chromium-browser.png
++cp -a chrome/app/theme/chromium/product_logo_64.png %{buildroot}%{_datadir}/icons/hicolor/64x64/apps/ungoogled-chromium.png
+ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/48x48/apps
+-cp -a chrome/app/theme/chromium/product_logo_48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/chromium-browser.png
++cp -a chrome/app/theme/chromium/product_logo_48.png %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/ungoogled-chromium.png
+ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/24x24/apps
+-cp -a chrome/app/theme/chromium/product_logo_24.png %{buildroot}%{_datadir}/icons/hicolor/24x24/apps/chromium-browser.png
++cp -a chrome/app/theme/chromium/product_logo_24.png %{buildroot}%{_datadir}/icons/hicolor/24x24/apps/ungoogled-chromium.png
+ 
+ # Install the master_preferences file
+ install -m 0644 %{SOURCE11} %{buildroot}%{_sysconfdir}/%{name}/
+@@ -1676,9 +1703,8 @@ install -m 0644 %{SOURCE11} %{buildroot}%{_sysconfdir}/%{name}/
+ mkdir -p %{buildroot}%{_datadir}/applications/
+ desktop-file-install --dir %{buildroot}%{_datadir}/applications %{SOURCE4}
+ 
+-install -D -m0644 %{SOURCE10} ${RPM_BUILD_ROOT}%{_datadir}/appdata/chromium-browser.appdata.xml
+-appstream-util validate-relax --nonet ${RPM_BUILD_ROOT}%{_datadir}/appdata/chromium-browser.appdata.xml
+-
++install -D -m0644 %{SOURCE10} ${RPM_BUILD_ROOT}%{_datadir}/appdata/ungoogled-chromium.appdata.xml
++appstream-util validate-relax --nonet ${RPM_BUILD_ROOT}%{_datadir}/appdata/ungoogled-chromium.appdata.xml
+ mkdir -p %{buildroot}%{_datadir}/gnome-control-center/default-apps/
+ cp -a %{SOURCE9} %{buildroot}%{_datadir}/gnome-control-center/default-apps/
+ 
+@@ -1700,21 +1726,22 @@ fi
+ %files
+ %doc AUTHORS README.fedora
+ %license LICENSE
+-%config(noreplace) %{_sysconfdir}/%{name}/chromium.conf
++%config(noreplace) %{_sysconfdir}/%{name}/ungoogled-chromium.conf
+ %config %{_sysconfdir}/%{name}/master_preferences
+ %config %{_sysconfdir}/%{name}/policies/
+-%{_bindir}/chromium-browser
++%{_bindir}/ungoogled-chromium
+ %{chromium_path}/chrome_*.pak
+ %{chromium_path}/chrome_crashpad_handler
+ %{chromium_path}/resources.pak
+ %{chromium_path}/chromium-browser
+ %{chromium_path}/chromium-browser.sh
++%{chromium_path}/locales/*.pak
+ %attr(4755, root, root) %{chromium_path}/chrome-sandbox
+-%{_mandir}/man1/chromium-browser.*
+-%{_datadir}/icons/hicolor/*/apps/chromium-browser.png
++%{_mandir}/man1/ungoogled-chromium.*
++%{_datadir}/icons/hicolor/*/apps/ungoogled-chromium.png
+ %{_datadir}/applications/*.desktop
+ %{_datadir}/appdata/*.appdata.xml
+-%{_datadir}/gnome-control-center/default-apps/chromium-browser.xml
++%{_datadir}/gnome-control-center/default-apps/ungoogled-chromium.xml
+ 
+ %if %{use_qt5}
+ %files qt5-ui
+diff --git a/master_preferences b/master_preferences
+index 8d732dc..32fdf95 100644
+--- a/master_preferences
++++ b/master_preferences
+@@ -1,5 +1,5 @@
+ {
+-  "homepage": "https://fedoraproject.org/start",
++  "homepage": "about:blank",
+   "homepage_is_newtabpage": false,
+   "distribution": {
+      "alternate_shortcut_text": false,
+@@ -11,6 +11,6 @@
+      "verbose_logging": false
+   },
+   "first_run_tabs": [
+-     "https://fedoraproject.org/start"
++     "https://ungoogled-software.github.io",
+   ]
+ }
+diff --git a/ungoogled-chromium.appdata.xml b/ungoogled-chromium.appdata.xml
+new file mode 100644
+index 0000000..367f587
+--- /dev/null
++++ b/ungoogled-chromium.appdata.xml
+@@ -0,0 +1,36 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<component type="desktop">
++  <id>ungoogled-chromium.desktop</id>
++  <update_contact>eloston@programmer.net</update_contact>
++  <metadata_license>CC0-1.0</metadata_license>
++  <project_license>
++    BSD-3-Clause AND LGPL-2.1-or-later AND Apache-2.0 AND IJG AND MIT AND
++    GPL-2.0-or-later AND ISC AND OpenSSL AND (MPL-1.1 OR GPL-2.0-only OR LGPL-2.0-only)
++  </project_license>
++  <name>Ungoogled Chromium</name>
++  <summary>A lightweight approach to removing Google web service dependency</summary>
++  <description>
++    <p>
++      ungoogled-chromium is Chromium, sans integration with Google. It 
++      features some tweaks to enhance privacy, control, and transparency (almost
++      all of which require manual activation or enabling).
++    </p>
++    <p>
++      ungoogled-chromium retains the default Chromium experience as closely as
++      possible. Unlike other Chromium forks that have their own visions of a web
++      browser, ungoogled-chromium is essentially a drop-in replacement for
++      Chromium.
++    </p>
++  </description>
++  <screenshots>
++    <screenshot type="default">
++      <image>https://user-images.githubusercontent.com/16843577/91255906-aa6e5e00-e76e-11ea-9326-fd236ff1db1d.png</image>
++      <caption/>
++    </screenshot>
++  </screenshots>
++  <translation/>
++  <developer_name>The Chromium Authors</developer_name>
++  <url type="homepage">https://github.com/Eloston/ungoogled-chromium</url>
++  <url type="bugtracker">https://github.com/Eloston/ungoogled-chromium/issues</url>
++  <url type="faq">https://ungoogled-software.github.io/ungoogled-chromium-wiki/faq</url>
++</component>
