@@ -1,0 +1,10 @@
+--- a/third_party/devtools-frontend/src/third_party/typescript/typescript.py
++++ b/third_party/devtools-frontend/src/third_party/typescript/typescript.py
+@@ -10,6 +10,7 @@
+ 
+ 
+ def GetBinaryPath():
++    return "/usr/bin/tsc"
+     if platform.machine() == 'arm64':
+         darwin_path = 'mac-arm64'
+     else:
