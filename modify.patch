@@ -44,7 +44,8 @@ index e88b5af..27e4a6b 100644
 +Icon=ungoogled-chromium
  Categories=Network;WebBrowser;
  MimeType=application/pdf;application/rdf+xml;application/rss+xml;application/xhtml+xml;application/xhtml_xml;application/xml;image/gif;image/jpeg;image/png;image/webp;text/html;text/xml;x-scheme-handler/http;x-scheme-handler/https;
- StartupWMClass=Chromium-browser
+-StartupWMClass=Chromium-browser
++StartupWMClass=chromium-browser
 @@ -245,7 +224,7 @@ Name[wo]=Palanteer bu bees
  Name[xh]=Ifestile entsha
  Name[zh_CN]=新建窗口
